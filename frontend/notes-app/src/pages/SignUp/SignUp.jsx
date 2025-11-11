@@ -1,8 +1,9 @@
 import React from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import loginImage from "../../assets/img/login-image.png";
 import { FaRegEye, FaRegEyeSlash } from 'react-icons/fa';
 import { emailIsValid, passwordIsValid, confirmPasswordIsValid} from '../../utils/helper';
+import axiosInstance from '../../utils/axiosInstance';
 
 const SignUp = () => {
     const [email, setEmail] = React.useState('');
@@ -10,6 +11,7 @@ const SignUp = () => {
     const [password, setPassword] = React.useState('');
     const [confirmPassword, setConfirmPassword] = React.useState('');
     const [error, setError] = React.useState('');
+    const [isLoading, setIsLoading] = React.useState(false);
     const [isShowPassword, setIsShowPassword] = React.useState(false);
     const [isShowConfirmPassword, setIsShowConfirmPassword] = React.useState(false);
 
@@ -20,6 +22,8 @@ const SignUp = () => {
     const toggleConfirmPasswordVisibility = () => {
         setIsShowConfirmPassword(!isShowConfirmPassword);
     };
+
+    const navigate = useNavigate
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -40,6 +44,31 @@ const SignUp = () => {
             setError('Passwords do not match.');
             return;
         }
+
+        setIsLoading(true);
+
+        try {
+            const response = await axiosInstance.post('/create-account', {
+                email,
+                password,
+                name,
+            });
+
+            if(response.data && response.data.accessToken) {
+                localStorage.setItem('token', response.data.accessToken);
+                navigate('/login');
+            }
+        } catch (error) {
+            if(error.response && error.response.data && error.response.data.message) {
+                setError(error.response.data.message);
+            } else {
+                setError('An error occurred. Please try again.');
+            }
+        } finally {
+            setIsLoading(false);
+        }
+
+
     };
     return (
         <div className='grid h-screen w-screen overflow-hidden bg-gray-100 md:grid-cols-3'>
@@ -61,6 +90,7 @@ const SignUp = () => {
                         onChange={(e) => setEmail(e.target.value)}
                         placeholder='Email'
                         className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        disabled={isLoading}
                     />
                 </div>
 
@@ -72,6 +102,7 @@ const SignUp = () => {
                         onChange={(e) => setName(e.target.value)}
                         placeholder='Name'
                         className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        disabled={isLoading}
                     />
                 </div>
 
@@ -83,6 +114,7 @@ const SignUp = () => {
                         onChange={(e) => setPassword(e.target.value)}
                         type={isShowPassword ? 'text' : 'password'}
                         className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        disabled={isLoading}
                     />
                     
                     {isShowPassword  ? (<FaRegEye
@@ -102,6 +134,7 @@ const SignUp = () => {
                         onChange={(e) => setConfirmPassword(e.target.value)}
                         type={isShowConfirmPassword ? 'text' : 'password'}
                         className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        disabled={isLoading}
                     />
                     
                     {isShowPassword  ? (<FaRegEye
@@ -118,8 +151,9 @@ const SignUp = () => {
                 <button
                     type="submit"
                     className="w-full bg-yellow-400 text-white py-2 rounded-lg hover:bg-blue-600 transition duration-300"
+                    disabled={isLoading}
                 >
-                    Sign Up
+                    {isLoading ? 'Signing Up...' : 'Sign Up'}
                 </button>
             <p className="mt-4">
                 Already have account?{' '}

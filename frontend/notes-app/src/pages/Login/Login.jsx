@@ -9,6 +9,7 @@ const Login = () => {
     const [email, setEmail] = React.useState('');
     const [password, setPassword] = React.useState('');
     const [error, setError] = React.useState('');
+    const [isLoading, setIsLoading] = React.useState(false);
     const [isShowPassword, setIsShowPassword] = React.useState(false);
 
     const togglePasswordVisibility = () => {
@@ -24,7 +25,7 @@ const Login = () => {
             setError('Please enter a valid email and password.');
             return;
         }
-
+        setIsLoading(true);
         try {
             const response = await axiosInstance.post('/login', {
                 email,
@@ -41,6 +42,8 @@ const Login = () => {
             } else {
                 setError('An error occurred. Please try again.');
             }
+        } finally {
+            setIsLoading(false);
         }
     }
     
@@ -65,6 +68,7 @@ const Login = () => {
                         onChange={(e) => setEmail(e.target.value)}
                         placeholder='Email'
                         className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        disabled={isLoading}
                     />
                 </div>
                 <div className="relative">
@@ -75,6 +79,7 @@ const Login = () => {
                         onChange={(e) => setPassword(e.target.value)}
                         type={isShowPassword ? 'text' : 'password'}
                         className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        disabled={isLoading}
                     />
                     
                     {isShowPassword  ? (<FaRegEye
@@ -91,8 +96,9 @@ const Login = () => {
                 <button
                     type="submit"
                     className="w-full bg-yellow-400 text-white py-2 rounded-lg hover:bg-blue-600 transition duration-300"
+                    disabled={isLoading}
                 >
-                    Login
+                    {isLoading ? 'Logging In...' : 'Login'}
                 </button>
             <p className="mt-4">
                 Don't have an account?{' '}
